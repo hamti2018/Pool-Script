@@ -3,7 +3,7 @@ const lodash = require('lodash');
 const cache = require('memory-cache');
 const async = require('async');
 
-const { mpapi } = require('./js-rpcapi');
+const { mpapi } = require('mineplex-rpcapi');
 const payment = require('./payment');
 const config = require('./config');
 const constants = require('./constants');
@@ -174,7 +174,7 @@ const getBakerCycle = async (baker, cycle) => {
     if (stableLevelDelegators.length !== minDelegatorsBalances.length) {
       minDelegatorsBalances = lodash.intersectionBy(minDelegatorsBalances, stableLevelDelegators, 'address');
     }
-    
+
     minDelegatorsBalances = lodash.zipWith(stableLevelDelegators, minDelegatorsBalances, (levelDelegator, cycleDelegator) => {
       return {
         address: levelDelegator.address,
@@ -224,7 +224,7 @@ const getRewards = async (block, type = constants.REWARD_TYPES.FOR_BAKING, baker
       else
         totalReward = baking_reward_per_endorsement[1] * countEndorsers;
       break;
-    case constants.REWARD_TYPES.FOR_ENDORSING: 
+    case constants.REWARD_TYPES.FOR_ENDORSING:
       if (priority === 0)
         totalReward = endorsement_reward[0] * slots;
       else
@@ -252,7 +252,7 @@ const getRewards = async (block, type = constants.REWARD_TYPES.FOR_BAKING, baker
     }));
   }
 
-  return rewardOfAddresses;    
+  return rewardOfAddresses;
 }
 
 const getRewardsForBaker = async (block, bakerAddress, endorsers) => {
@@ -294,9 +294,9 @@ const handleBlock = async (block, nextBlock) => {
   const blockEndorsers = getBlockEndorsers(nextBlock.operations);
 
   if (isInBakerList(baker)) {
-      const rewards = await getRewardsForBaker(block, baker, blockEndorsers);
-      console.log(`Found ${rewards.length} rewards for baking ${baker}`);
-      await saveRewards(baker, rewards);
+    const rewards = await getRewardsForBaker(block, baker, blockEndorsers);
+    console.log(`Found ${rewards.length} rewards for baking ${baker}`);
+    await saveRewards(baker, rewards);
   }
 
   await async.eachLimit(blockEndorsers, 1, async (endorser) => {
@@ -324,7 +324,7 @@ mongoose.connect(config.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: 
       config.START_INDEXING_LEVEL,
       BLOCKS_IN_CYCLE * PRESERVES_CYCLE,
     ]);
-    
+
     console.log('Starting from', level)
     while (true) {
       // There must be at least one block ahead.
@@ -337,7 +337,7 @@ mongoose.connect(config.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: 
         const block = await getBlock(level);
         const nextBlock = await getBlock(level + 1);
         const cycleInfo = await getCycleInfo(block.metadata.level.cycle);
-        console.log(`Current level is ${level}, block hash is ${block.hash}`);    
+        console.log(`Current level is ${level}, block hash is ${block.hash}`);
         const startTime = new Date().getTime();
         await handleBlock(block, nextBlock);
         const endTime = new Date().getTime();

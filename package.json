@@ -12,6 +12,7 @@
     "async": "^3.2.0",
     "lodash": "^4.17.20",
     "memory-cache": "^0.2.0",
+    "mineplex-rpcapi": "^1.0.0",
     "mongoose": "^5.10.7"
   }
 }
