@@ -1,7 +1,7 @@
 const lodash = require('lodash');
 const async = require('async');
 
-const { mpapi } = require('./js-rpcapi');
+const { mpapi } = require('mineplex-rpcapi');
 const config = require('./config');
 
 const Reward = require('./models/reward')();
