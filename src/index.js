@@ -5,12 +5,12 @@ const async = require('async')
 
 const { mpapi } = require('mineplex-rpcapi')
 const payment = require('./payment')
-const config = require('./config')
-const constants = require('./constants')
+const config = require('../config')
+const constants = require('../constants')
 
-const Settings = require('./models/settings')()
-const BakerCycle = require('./models/bakerCycle')()
-const Reward = require('./models/reward')()
+const Settings = require('../models/settings')()
+const BakerCycle = require('../models/bakerCycle')()
+const Reward = require('../models/reward')()
 
 mpapi.node.setProvider(config.NODE_RPC)
 mpapi.node.setDebugMode(false)
@@ -96,8 +96,7 @@ const getBlockEndorsers = (operations) => {
 
 const getDelegatedAddresses = async (baker, level) => {
   const delegatedAddresses = await mpapi.rpc.getDelegatedAddresses(baker, level)
-
-  return await async.mapLimit(
+  return async.mapLimit(
     delegatedAddresses.filter(address => address !== baker),
     2,
     async (address) => ({
@@ -180,7 +179,7 @@ const getBakerCycle = async (baker, cycle) => {
     })
   }
 
-  return await BakerCycle.findOneAndUpdate({
+  return BakerCycle.findOneAndUpdate({
     address: baker,
     cycle: cycle
   }, {
@@ -269,7 +268,7 @@ const saveRewards = async (bakerAddress, rewards) => {
     rewards,
     10,
     async (reward) => {
-      return await Reward.updateOne({
+      return Reward.updateOne({
         from: bakerAddress,
         to: reward.address,
         level: reward.metadata.level,
@@ -370,5 +369,5 @@ mongoose.connect(config.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: 
     }, 1000 * 60)
   }
 
-  startIndex()
+  await startIndex()
 })

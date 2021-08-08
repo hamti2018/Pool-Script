@@ -1,47 +1,47 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const mongoose = require('mongoose')
+const { Schema } = mongoose
 
 const BakerCycle = new Schema({
   address: {
     type: String,
     required: true,
     trim: true,
-    index: true,
+    index: true
   },
   cycle: {
     type: Number,
     required: true,
-    index: true,
+    index: true
   },
 
   minFullStakingBalance: {
     type: Number,
-    required: true,
+    required: true
   },
   minOwnBalance: {
     type: Number,
-    required: true,
+    required: true
   },
   minDelegatedBalance: {
     type: Number,
-    required: true,
+    required: true
   },
   fullCycleDelegators: [{
     address: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
     minDelegatedBalance: {
       type: Number,
-      required: true,
+      required: true
     }
   }]
 }, {
   timestamps: true,
   autoIndex: true
-});
+})
 
 module.exports = () => {
-  return mongoose.model('BakerCycle', BakerCycle);
-};
+  return mongoose.model('BakerCycle', BakerCycle)
+}

@@ -2,13 +2,13 @@ const lodash = require('lodash')
 const async = require('async')
 
 const { mpapi } = require('mineplex-rpcapi')
-const config = require('./config')
+const config = require('../config')
 
-const Reward = require('./models/reward')()
+const Reward = require('../models/reward')()
 
 const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
   console.log(`Start payment from ${bakerKeys.pkh}`)
-  const Operation = require('./models/operation')(bakerKeys.pkh)
+  const Operation = require('../models/operation')(bakerKeys.pkh)
 
   console.log('Rewarding period is up to ', lastLevel)
   if (!lastLevel) {
@@ -44,7 +44,7 @@ const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
 
     const amountPlex = amountPlexGross * (1 - commission)
     if (amountPlex >= config.PAYMENT_SCRIPT.MIN_PAYMENT_AMOUNT) {
-      const fee = 1
+      const fee = 0.005
       const gasLimit = 0.010307
       const storageLimit = 0.000257
       operations.push({
