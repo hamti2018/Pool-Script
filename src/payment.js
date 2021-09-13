@@ -16,6 +16,10 @@ const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
     return
   }
 
+  if (config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT > 0) {
+    lastLevel = lastLevel - (1440 * config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT)
+  }
+
   const rewardsByAddress = await Reward.aggregate([{
     $match: {
       from: bakerKeys.pkh,
@@ -44,7 +48,7 @@ const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
 
     const amountPlex = amountPlexGross * (1 - commission)
     if (amountPlex >= config.PAYMENT_SCRIPT.MIN_PAYMENT_AMOUNT) {
-      const fee = 0.005
+      const fee = 0.0001
       const gasLimit = 0.010307
       const storageLimit = 0.000257
       operations.push({

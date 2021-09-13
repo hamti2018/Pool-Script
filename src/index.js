@@ -308,66 +308,69 @@ const handleBlock = async (block, nextBlock) => {
   })
 }
 
-mongoose.connect(config.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false }, async (error) => {
-  if (error) throw error
+mongoose.connect(config.MONGO_URL,
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false
+  }, async (error) => {
+    if (error) throw error
 
-  const startIndex = async () => {
-    const { lastIndexedLevel } = await Settings.findOne() || {}
-    const head = await getBlock()
+    const startIndex = async () => {
+      const { lastIndexedLevel } = await Settings.findOne() || {}
+      const head = await getBlock()
 
-    let level = lodash.max([
-      (lastIndexedLevel || 0) + 1,
-      config.START_INDEXING_LEVEL,
-      BLOCKS_IN_CYCLE * PRESERVES_CYCLE
-    ])
+      let level = lodash.max([
+        (lastIndexedLevel || 0) + 1,
+        config.START_INDEXING_LEVEL,
+        BLOCKS_IN_CYCLE * PRESERVES_CYCLE
+      ])
 
-    console.log('Starting from', level)
-    while (true) {
-      // There must be at least one block ahead.
-      // We need it to get the next block.
-      if (level >= head.header.level) {
-        break
-      }
-
-      try {
-        const block = await getBlock(level)
-        const nextBlock = await getBlock(level + 1)
-        const cycleInfo = await getCycleInfo(block.metadata.level.cycle)
-        console.log(`Current level is ${level}, block hash is ${block.hash}`)
-        const startTime = new Date().getTime()
-        await handleBlock(block, nextBlock)
-        const endTime = new Date().getTime()
-        console.log(`End of block handling. Run time: ${endTime - startTime}`)
-        await Settings.findOneAndUpdate({}, {
-          $set: {
-            lastIndexedLevel: level
-          }
-        }, {
-          upsert: true
-        })
-
-        if (config.PAYMENT_SCRIPT.ENABLED_AUTOPAYMENT) {
-          if (level === cycleInfo.first + lodash.max([5, config.PAYMENT_SCRIPT.AUTOPAYMENT_LEVEL])) {
-            const previousCycleInfo = await getCycleInfo(block.metadata.level.cycle - 1)
-            await async.eachLimit(config.PAYMENT_SCRIPT.BAKER_PRIVATE_KEYS, 1, async (privateKey) => {
-              const bakerKeys = mpapi.crypto.extractKeys(privateKey)
-              await payment.runPaymentScript({ bakerKeys, lastLevel: previousCycleInfo.last })
-            })
-          }
+      console.log('Starting from', level)
+      while (true) {
+        if (level >= head.header.level) {
+          break
         }
-      } catch (error) {
-        console.log('Error on', level, error)
-        break
+
+        try {
+          const block = await getBlock(level)
+          const nextBlock = await getBlock(level + 1)
+          const cycleInfo = await getCycleInfo(block.metadata.level.cycle)
+          console.log(`Current level is ${level}, block hash is ${block.hash}`)
+          const startTime = new Date().getTime()
+          await handleBlock(block, nextBlock)
+          const endTime = new Date().getTime()
+          console.log(`End of block handling. Run time: ${endTime - startTime}`)
+          await Settings.findOneAndUpdate({}, {
+            $set: {
+              lastIndexedLevel: level
+            }
+          }, {
+            upsert: true
+          })
+
+          if (config.PAYMENT_SCRIPT.ENABLED_AUTOPAYMENT) {
+            if (level === cycleInfo.first + lodash.max([5, config.PAYMENT_SCRIPT.AUTOPAYMENT_LEVEL])) {
+              const previousCycleInfo = await getCycleInfo(block.metadata.level.cycle - 1)
+              await async.eachLimit(config.PAYMENT_SCRIPT.BAKER_PRIVATE_KEYS, 1, async (privateKey) => {
+                const bakerKeys = mpapi.crypto.extractKeys(privateKey)
+                await payment.runPaymentScript({ bakerKeys, lastLevel: previousCycleInfo.last })
+              })
+            }
+          }
+        } catch (error) {
+          console.log('Error on', level, error)
+          break
+        }
+        level += 1
       }
-      level += 1
+
+      console.log('Level is greater than the head, waiting...')
+      setTimeout(() => {
+        console.log('Continue indexing')
+        startIndex()
+      }, 1000 * 60)
     }
 
-    console.log('Level is greater than the head, waiting...')
-    setTimeout(() => {
-      console.log('Continue indexing')
-      startIndex()
-    }, 1000 * 60)
-  }
-
-  await startIndex()
-})
+    await startIndex()
+  })
