@@ -10,14 +10,14 @@ const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
   console.log(`Start payment from ${bakerKeys.pkh}`)
   const Operation = require('../models/operation')(bakerKeys.pkh)
 
+  if (config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT > 0) {
+    lastLevel = lastLevel - (1440 * config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT)
+  }
+
   console.log('Rewarding period is up to ', lastLevel)
   if (!lastLevel) {
     console.log('Cant load last block')
     return
-  }
-
-  if (config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT > 0) {
-    lastLevel = lastLevel - (1440 * config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT)
   }
 
   const rewardsByAddress = await Reward.aggregate([{
@@ -48,7 +48,7 @@ const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
 
     const amountPlex = amountPlexGross * (1 - commission)
     if (amountPlex >= config.PAYMENT_SCRIPT.MIN_PAYMENT_AMOUNT) {
-      const fee = 0.0001
+      const fee = config.PAYMENT_SCRIPT.PAYMENT_FEE
       const gasLimit = 0.010307
       const storageLimit = 0.000257
       operations.push({
