@@ -250,6 +250,7 @@ const getRewards = async (block, type = constants.REWARD_TYPES.FOR_BAKING, baker
     }))
   }
 
+  rewardOfAddresses = rewardOfAddresses.filter(delegator => delegator.metadata.minDelegatedBalance > 100)
   return rewardOfAddresses
 }
 
