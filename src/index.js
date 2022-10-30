@@ -10,7 +10,7 @@ const constants = require('../constants')
 
 const Settings = require('../models/settings')()
 const BakerCycle = require('../models/bakerCycle')()
-const Reward = require('../models/reward')()
+const Reward = require('../models/rewardNew')()
 
 mpapi.node.setProvider(config.NODE_RPC)
 mpapi.node.setDebugMode(false)
@@ -30,7 +30,6 @@ const getBlock = async (level = 'head') => {
   if (!cachedBlock) {
     const block = await mpapi.rpc.getHead(level)
     blocksCache.put(block.header.level, block, BLOCKS_IN_CYCLE * PRESERVES_CYCLE * TIME_BETWEEN_BLOCKS)
-
     return block
   }
 
@@ -238,10 +237,9 @@ const getRewards = async (block, type = constants.REWARD_TYPES.FOR_BAKING, baker
     rewardOfAddresses = bakerCycle.fullCycleDelegators.map(delegator => ({
       address: delegator.address,
       reward: lodash.floor(totalReward / bakerCycle.minFullStakingBalance * delegator.minDelegatedBalance, 7),
-      type,
       metadata: {
         priority,
-        level,
+        cycle,
         totalReward,
         countEndorsers: endorsers.length,
         countSlots: slots,
@@ -271,16 +269,15 @@ const saveRewards = async (bakerAddress, rewards) => {
       return Reward.updateOne({
         from: bakerAddress,
         to: reward.address,
-        level: reward.metadata.level,
-        type: reward.type
+        cycle: reward.metadata.cycle
       }, {
         $set: {
           from: bakerAddress,
           to: reward.address,
-          amount: reward.reward,
-          level: reward.metadata.level,
-          type: reward.type,
-          metadata: reward.metadata
+          cycle: reward.metadata.cycle
+        },
+        $inc: {
+          amount: reward.reward
         }
       }, {
         upsert: true
@@ -351,10 +348,10 @@ mongoose.connect(config.MONGO_URL,
 
           if (config.PAYMENT_SCRIPT.ENABLED_AUTOPAYMENT) {
             if (level === cycleInfo.first + lodash.max([5, config.PAYMENT_SCRIPT.AUTOPAYMENT_LEVEL])) {
-              const previousCycleInfo = await getCycleInfo(block.metadata.level.cycle - 1)
+              // const previousCycleInfo = await getCycleInfo(block.metadata.level.cycle - 1)
               await async.eachLimit(config.PAYMENT_SCRIPT.BAKER_PRIVATE_KEYS, 1, async (privateKey) => {
                 const bakerKeys = mpapi.crypto.extractKeys(privateKey)
-                await payment.runPaymentScript({ bakerKeys, lastLevel: previousCycleInfo.last })
+                await payment.runPaymentScript({ bakerKeys, cycle: block.metadata.level.cycle - 1 })
               })
             }
           }

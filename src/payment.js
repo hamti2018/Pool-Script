@@ -1,29 +1,32 @@
 const lodash = require('lodash')
 const async = require('async')
-
 const { mpapi } = require('mineplex-rpcapi')
+
+const Reward = require('../models/rewardNew')()
 const config = require('../config')
 
-const Reward = require('../models/reward')()
+mpapi.node.setProvider(config.NODE_RPC)
+mpapi.node.setDebugMode(false)
 
-const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
+const runPaymentScript = async ({ bakerKeys, cycle }) => {
   console.log(`Start payment from ${bakerKeys.pkh}`)
   const Operation = require('../models/operation')(bakerKeys.pkh)
 
-  if (config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT > 0) {
-    lastLevel = lastLevel - (1440 * config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT)
-  }
+  // if (config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT > 0) {
+  //   lastLevel = lastLevel - (1440 * config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT)
+  // }
 
-  console.log('Rewarding period is up to ', lastLevel)
-  if (!lastLevel) {
-    console.log('Cant load last block')
-    return
-  }
+  // console.log('Rewarding period is up to ', lastLevel)
+  // if (!lastLevel) {
+  //   console.log('Cant load last block')
+  //   return
+  // }
+  cycle = cycle - config.PAYMENT_SCRIPT.CYCLE_MAKE_AUTOPAYMENT
 
   const rewardsByAddress = await Reward.aggregate([{
     $match: {
       from: bakerKeys.pkh,
-      level: { $lte: lastLevel },
+      cycle: { $lte: cycle },
       paymentOperationHash: null
     }
   }, {
@@ -71,7 +74,6 @@ const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
   }
 
   const currentDate = new Date()
-
   const oneChunk = async (operations) => {
     try {
       const sendOperations = async (operations) => {
@@ -98,7 +100,7 @@ const runPaymentScript = async ({ bakerKeys, lastLevel }) => {
       console.log('Updated rewards with hash', await Reward.updateMany({
         from: bakerKeys.pkh,
         to: operations.map(operation => operation.to),
-        level: { $lte: lastLevel }
+        cycle: { $lte: cycle }
       }, {
         $set: {
           paymentOperationHash: hash
