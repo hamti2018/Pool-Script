@@ -100,7 +100,7 @@ const runPaymentScript = async ({ bakerKeys, cycle }) => {
       console.log('Updated rewards with hash', await Reward.updateMany({
         from: bakerKeys.pkh,
         to: operations.map(operation => operation.to),
-        cycle: { $lte: cycle }
+        cycle: cycle
       }, {
         $set: {
           paymentOperationHash: hash
