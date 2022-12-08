@@ -1,10 +1,18 @@
+const fs = require('fs')
+const path = require('path')
+const yaml = require('js-yaml')
+
 const RewardOld = require('../models/rewardOld')()
 const Reward = require('../models/reward')()
-const config = require('../config')
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+
+const config = yaml.load(fs.readFileSync(path.join(__dirname, '..', 'config.yaml'), 'utf8'))
+const {
+  MONGO_URL
+} = config;
 
 (async () => {
-  await mongoose.connect(config.MONGO_URL, {
+  await mongoose.connect(MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false
