@@ -1,8 +1,0 @@
-const REWARD_TYPES = {
-  FOR_BAKING: 'FOR_BAKING',
-  FOR_ENDORSING: 'FOR_ENDORSING'
-}
-
-module.exports = {
-  REWARD_TYPES
-}

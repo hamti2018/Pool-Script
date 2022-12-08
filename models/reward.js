@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const constants = require('../constants')
+// const constants = require('../constants')
 const { Schema } = mongoose
 
 const Reward = new Schema({
@@ -15,7 +15,7 @@ const Reward = new Schema({
     trim: true,
     index: true
   },
-  level: {
+  cycle: {
     type: Number,
     required: true,
     index: true
@@ -23,12 +23,6 @@ const Reward = new Schema({
   amount: {
     type: Number,
     required: true
-  },
-  type: {
-    type: String,
-    required: true,
-    index: true,
-    enum: Object.values(constants.REWARD_TYPES)
   },
   paymentOperationHash: {
     type: String,

@@ -1,5 +1,6 @@
 Before starting be sure that a blockchain node has been installed 
 
+Внимание обратно не совместима. Поменялся формат и стуркутра базы данных, также поменялся файл конфига.
 
 Run node process
 <pre><code>

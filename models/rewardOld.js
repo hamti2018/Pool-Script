@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
-// const constants = require('../constants')
+const constants = require('../constants')
 const { Schema } = mongoose
 
-const RewardNew = new Schema({
+const Reward = new Schema({
   from: {
     type: String,
     required: true,
@@ -15,7 +15,7 @@ const RewardNew = new Schema({
     trim: true,
     index: true
   },
-  cycle: {
+  level: {
     type: Number,
     required: true,
     index: true
@@ -23,6 +23,12 @@ const RewardNew = new Schema({
   amount: {
     type: Number,
     required: true
+  },
+  type: {
+    type: String,
+    required: true,
+    index: true,
+    enum: Object.values(constants.REWARD_TYPES)
   },
   paymentOperationHash: {
     type: String,
@@ -35,5 +41,5 @@ const RewardNew = new Schema({
 })
 
 module.exports = () => {
-  return mongoose.model('RewardNew', RewardNew)
+  return mongoose.model('Rewardold', Reward)
 }

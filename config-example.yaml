@@ -1,0 +1,53 @@
+REWARD_TYPES:
+  FOR_BAKING: FOR_BAKING
+  FOR_ENDORSING: FOR_ENDORSING
+
+NODE_RPC: http://127.0.0.1:8732/
+
+MONGO_URL: mongodb://localhost:27017/dbname
+
+START_INDEXING_LEVEL: 1141921
+
+BAKERS_LIST:
+  - mp1...
+  - mp1...
+  - mp1...
+
+######### AUTOPAYMENT START #########
+# You need to make payments manually if this option is disabled
+ENABLED_AUTOPAYMENT: false
+
+# baker keys  start
+BAKER_PRIVATE_KEYS:
+  mp1...: edsk...
+  mp1...2: edsk...
+# baker keys  end
+
+# payment from another wallet start
+PAYMENT_FROM_ANOTHER_WALLET: false
+PAYMENT_FROM_ANOTHER_WALLET_PRIVATE_KEYS:
+  - mp1...: edsk...
+  - mp1...: edsk...
+# payment from another wallet end
+
+# percent commision min 0 max 1 (0.1 == 10%, 1 == 100%) start
+DEFAULT_BAKER_COMMISSION: 0.07
+BAKERS_COMMISSIONS:
+  mp11: 1
+  mp12: 1
+ADDRESSES_COMMISSIONS:
+  mp11: 1
+  mp12: 1
+# percent commision min 0 max 1 (0.1 == 10%, 1 == 100%) end
+
+# minimal amount in auto payment
+MIN_PAYMENT_AMOUNT: 0.01
+# 5 is a minimal level or  max 1435
+AUTOPAYMENT_LEVEL: 10
+# payment cycle min 0
+CYCLE_MAKE_AUTOPAYMENT: 5
+# fee mine recommended 1 mine
+PAYMENT_FEE: 1
+# maximal operations in one block
+MAX_COUNT_OPERATIONS_IN_ONE_BLOCK: 199
+######### AUTOPAYMENT END #########
