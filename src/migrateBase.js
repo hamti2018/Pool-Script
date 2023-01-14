@@ -6,31 +6,32 @@ const RewardOld = require('../models/rewardOld')()
 const Reward = require('../models/reward')()
 const mongoose = require('mongoose')
 
-const config = yaml.load(fs.readFileSync(path.join(__dirname, '..', 'config.yaml'), 'utf8'))
-const {
-  MONGO_URL
-} = config;
+const config = yaml.load(
+  fs.readFileSync(path.join(__dirname, '..', 'config.yaml'), 'utf8')
+)
+const { MONGO_URL } = config
 
-(async () => {
+;(async () => {
   await mongoose.connect(MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useFindAndModify: false
+    useFindAndModify: false,
   })
 
   let { level } = await RewardOld.findOne({
-    paymentOperationHash: null
+    paymentOperationHash: null,
   })
   console.log('first level', level)
 
   let count = await RewardOld.find({
-    paymentOperationHash: null
+    paymentOperationHash: null,
   }).count()
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const cycle = Math.floor(level / 1440)
     const firstCycLelevel = cycle * 1440 + 1
-    const lastCycleLevel = (cycle * 1440) + 1440
+    const lastCycleLevel = cycle * 1440 + 1440
 
     console.log('current cycle ' + cycle, firstCycLelevel, lastCycleLevel)
 
@@ -38,9 +39,9 @@ const {
     const rewardsByAddress = await RewardOld.find({
       level: {
         $gte: firstCycLelevel,
-        $lte: lastCycleLevel
+        $lte: lastCycleLevel,
       },
-      paymentOperationHash: null
+      paymentOperationHash: null,
     }).lean()
 
     count = count - rewardsByAddress.length
@@ -59,7 +60,7 @@ const {
           from,
           to,
           cycle,
-          amount
+          amount,
         }
       }
     })

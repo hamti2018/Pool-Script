@@ -8,7 +8,9 @@ const { mpapi } = require('mineplex-rpcapi')
 
 const Reward = require('../models/reward')()
 
-const config = yaml.load(fs.readFileSync(path.join(__dirname, '..', 'config.yaml'), 'utf8'))
+const config = yaml.load(
+  fs.readFileSync(path.join(__dirname, '..', 'config.yaml'), 'utf8')
+)
 const {
   NODE_RPC,
   CYCLE_MAKE_AUTOPAYMENT,
@@ -18,7 +20,7 @@ const {
   MIN_PAYMENT_AMOUNT,
   PAYMENT_FEE,
 
-  MAX_COUNT_OPERATIONS_IN_ONE_BLOCK
+  MAX_COUNT_OPERATIONS_IN_ONE_BLOCK,
 } = config
 
 mpapi.node.setProvider(NODE_RPC)
@@ -30,18 +32,21 @@ const runPaymentScript = async ({ pkh, bakerKeys, cycle }) => {
 
   cycle = cycle - CYCLE_MAKE_AUTOPAYMENT
 
-  const rewardsByAddress = await Reward.aggregate([{
-    $match: {
-      from: pkh,
-      cycle: { $lte: cycle },
-      paymentOperationHash: null
-    }
-  }, {
-    $group: {
-      _id: '$to',
-      amountPlexGross: { $sum: '$amount' }
-    }
-  }])
+  const rewardsByAddress = await Reward.aggregate([
+    {
+      $match: {
+        from: pkh,
+        cycle: { $lte: cycle },
+        paymentOperationHash: null,
+      },
+    },
+    {
+      $group: {
+        _id: '$to',
+        amountPlexGross: { $sum: '$amount' },
+      },
+    },
+  ])
 
   console.log(new Date(), ' Loaded addresses', rewardsByAddress.length)
 
@@ -67,13 +72,17 @@ const runPaymentScript = async ({ pkh, bakerKeys, cycle }) => {
         gasLimit,
         storageLimit,
         amountPlex,
-        amountPlexGross
+        amountPlexGross,
       })
     }
   })
 
   console.log(new Date(), ' Count operations', operations.length)
-  console.log(new Date(), ' Total plex rewards:', operations.reduce((acc, operation) => acc + operation.amountPlex, 0))
+  console.log(
+    new Date(),
+    ' Total plex rewards:',
+    operations.reduce((acc, operation) => acc + operation.amountPlex, 0)
+  )
 
   if (!operations.length) {
     console.log(new Date(), ' No operations found', new Date())
@@ -86,14 +95,21 @@ const runPaymentScript = async ({ pkh, bakerKeys, cycle }) => {
       const sendOperations = async (operations) => {
         try {
           console.log(new Date(), ' Try to send operations')
-          const { hash = `${pkh}-${currentDate}` } = await mpapi.rpc.sendOperation(bakerKeys.pkh, operations.map(operation => ({
-            kind: 'transaction',
-            fee: mpapi.utility.mutez(operation.fee).toString(),
-            gas_limit: mpapi.utility.mutez(operation.gasLimit).toString(),
-            storage_limit: mpapi.utility.mutez(operation.storageLimit).toString(),
-            amount: mpapi.utility.mutez(operation.amountPlex).toString(),
-            destination: operation.to
-          })), bakerKeys)
+          const { hash = `${pkh}-${currentDate}` } =
+            await mpapi.rpc.sendOperation(
+              bakerKeys.pkh,
+              operations.map((operation) => ({
+                kind: 'transaction',
+                fee: mpapi.utility.mutez(operation.fee).toString(),
+                gas_limit: mpapi.utility.mutez(operation.gasLimit).toString(),
+                storage_limit: mpapi.utility
+                  .mutez(operation.storageLimit)
+                  .toString(),
+                amount: mpapi.utility.mutez(operation.amountPlex).toString(),
+                destination: operation.to,
+              })),
+              bakerKeys
+            )
 
           return hash
         } catch (error) {
@@ -104,39 +120,55 @@ const runPaymentScript = async ({ pkh, bakerKeys, cycle }) => {
       const hash = await sendOperations(operations)
       console.log(new Date(), ' Operation hash', hash)
 
-      console.log(new Date(), ' Updated rewards with hash', await Reward.updateMany({
-        from: pkh,
-        to: operations.map(operation => operation.to),
-        cycle: { $lte: cycle },
-        paymentOperationHash: null
-      }, {
-        $set: {
-          paymentOperationHash: hash
-        }
-      }))
+      console.log(
+        new Date(),
+        ' Updated rewards with hash',
+        await Reward.updateMany(
+          {
+            from: pkh,
+            to: operations.map((operation) => operation.to),
+            cycle: { $lte: cycle },
+            paymentOperationHash: null,
+          },
+          {
+            $set: {
+              paymentOperationHash: hash,
+            },
+          }
+        )
+      )
 
-      await Operation.insertMany(operations.map(operation => ({
-        to: operation.to,
-        from: pkh,
-        amountPlex: operation.amountPlex,
-        amountPlexGross: operation.amountPlexGross,
-        operationHash: hash,
-        fee: operation.fee
-      })))
+      await Operation.insertMany(
+        operations.map((operation) => ({
+          to: operation.to,
+          from: pkh,
+          amountPlex: operation.amountPlex,
+          amountPlexGross: operation.amountPlexGross,
+          operationHash: hash,
+          fee: operation.fee,
+        }))
+      )
 
-      const blockHash = await mpapi.rpc.awaitOperation(hash, 10 * 1000, 61 * 60 * 1000)
+      const blockHash = await mpapi.rpc.awaitOperation(
+        hash,
+        10 * 1000,
+        61 * 60 * 1000
+      )
       console.log(new Date(), ' Block hash:', blockHash)
     } catch (error) {
       console.log(new Date(), ' Error', error)
     }
   }
 
-  const chunkedOperations = lodash.chunk(operations, lodash.min([MAX_COUNT_OPERATIONS_IN_ONE_BLOCK, 199]))
+  const chunkedOperations = lodash.chunk(
+    operations,
+    lodash.min([MAX_COUNT_OPERATIONS_IN_ONE_BLOCK, 199])
+  )
   await async.eachLimit(chunkedOperations, 1, async (operations) => {
     await oneChunk(operations)
   })
 }
 
 module.exports = {
-  runPaymentScript
+  runPaymentScript,
 }

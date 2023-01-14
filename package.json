@@ -8,6 +8,28 @@
   },
   "author": "",
   "license": "ISC",
+  "prettier": {
+    "trailingComma": "es5",
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "bracketSpacing": true,
+    "tabWidth": 2,
+    "semi": false,
+    "singleQuote": true
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "overrides": [],
+    "parserOptions": {
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    },
+    "rules": {}
+  },
   "dependencies": {
     "async": "^3.2.0",
     "js-yaml": "^4.1.0",
@@ -17,10 +39,7 @@
     "mongoose": "^5.10.7"
   },
   "devDependencies": {
-    "eslint": "^7.28.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.23.4",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0"
+    "eslint": "^8.31.0",
+    "prettier": "^2.8.3"
   }
 }
