@@ -28,12 +28,12 @@ const {
   NODE_RPC,
   MONGO_URL,
   START_INDEXING_LEVEL,
+  BAKER_LIST,
   ENABLED_AUTOPAYMENT,
   AUTOPAYMENT_LEVEL,
   BAKER_PRIVATE_KEYS,
   PAYMENT_FROM_ANOTHER_WALLET,
   PAYMENT_FROM_ANOTHER_WALLET_PRIVATE_KEYS,
-  BAKER_LIST,
   REWARD_TYPES
 } = config
 
@@ -336,6 +336,8 @@ async function getRewards(block, type = REWARD_TYPES.FOR_BAKING, baker, { endors
       }
     }))
   }
+
+  console.log('cycle', cycle)
 
   rewardOfAddresses = rewardOfAddresses.filter(delegator => delegator.metadata.minDelegatedBalance > 100)
   return rewardOfAddresses
