@@ -9,6 +9,7 @@ const async = require('async')
 const { mpapi } = require('mineplex-rpcapi')
 
 const payment = require('./payment')
+const beneficiariesRewards = require('./beneficiaries_rewards')
 
 const Settings = require('../models/settings')()
 const BakerCycle = require('../models/bakerCycle')()
@@ -117,6 +118,8 @@ module.exports = async function () {
             cycle: block.metadata.level.cycle - 1,
           })
         })
+
+        await beneficiariesRewards()
       } catch (error) {
         console.log(new Date(), ' Error on', level, error)
         break

@@ -1,5 +1,12 @@
+const fs = require('fs')
+const path = require('path')
 const mongoose = require('mongoose')
-const constants = require('../constants')
+
+const yaml = require('js-yaml')
+
+const config = yaml.load(
+  fs.readFileSync(path.join(__dirname, '..', 'config.yaml'), 'utf8')
+)
 const { Schema } = mongoose
 
 const Reward = new Schema(
@@ -29,7 +36,7 @@ const Reward = new Schema(
       type: String,
       required: true,
       index: true,
-      enum: Object.values(constants.REWARD_TYPES),
+      enum: Object.values(config.REWARD_TYPES),
     },
     paymentOperationHash: {
       type: String,
