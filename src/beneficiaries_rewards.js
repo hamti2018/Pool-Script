@@ -43,8 +43,8 @@ const {
 mpapi.node.setProvider(NODE_RPC)
 mpapi.node.setDebugMode(false)
 
-module.exports = async function () {
-  if (!BENEFICIARIES_REWARDS) return
+const rewardsBeneficiaries = async function () {
+  if (require.main || !BENEFICIARIES_REWARDS) return
 
   const bakerList = PAYMENT_FROM_ANOTHER_WALLET
     ? Object.entries(PAYMENT_FROM_ANOTHER_WALLET_PRIVATE_KEYS)
@@ -92,3 +92,10 @@ module.exports = async function () {
     await new Promise((resolve) => setTimeout(resolve, 2000))
   }
 }
+
+if (require.main) {
+  BENEFICIARIES_REWARDS = true
+  rewardsBeneficiaries()
+}
+
+module.exports = rewardsBeneficiaries
